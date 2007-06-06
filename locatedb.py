@@ -24,7 +24,7 @@ def compress(paths):
 		else:
 			# diff larget
 			bytes += chr(0x80)
-			
+
 			hilo   = diff & 0xffff
 			bytes += chr((hilo >> 8) & 0xff)
 			bytes += chr(hilo & 0xff)
@@ -44,7 +44,7 @@ def decompress_aux(file):
 	curr = Dummy()
 	curr.buffer = ""
 	curr.idx = 0
-	
+
 	def getc():
 		try:
 			c = curr.buffer[curr.idx]
@@ -87,10 +87,10 @@ def decompress(file):
 		first_entry = iter.next()
 	except StopIteration:
 		raise ValueError("Not a locate v.2 file")
-	
+
 	if first_entry != "LOCATE02":
 		raise ValueError("Not a locate v.2 file")
-	
+
 	for item in iter:
 		yield item
 
@@ -102,50 +102,107 @@ if __name__ == "__main__":
 		print "usage:"
 		print "%s decompress infile" % sys.argv[0]
 		print "%s compress path outfile" % sys.argv[0]
+		print "%s compress-list infile outfile" % sys.argv[0]
 		sys.exit(1)
 
-	def get_option(index):
+	def get_option(index, default=None):
 		try:
 			return sys.argv[index]
 		except IndexError:
-			usage()
-	
+			if type(default) is not str:
+				usage()
+			else:
+				return default
+
+	def die(*info):
+		for text in info:
+			sys.stderr.write(str(text))
+			sys.stderr.write(" ")
+		else:
+			sys.stderr.write("\n")
+
+		sys.exit(1)
+
 	action = get_option(1).lower()
 
 	###
 	if action == "compress":
-		
+
 		path    = get_option(2)
-		outfile = get_option(3)
+		outfile = get_option(3, "-")
 
 		if not os.path.exists(path):
-			print "Directory", path, "doesn't exists"
-			sys.exit(1)
+			die("Directory", path, "doesn't exists")
 		elif not os.path.isdir(path):
-			print "File", path, "is not directory"
-			sys.exit(1)
+			die("File", path, "is not directory")
 
-		if os.path.exists(outfile):
-			print "File", outfile, "already exists"
-			sys.exit(1)
-	
+		if outfile in ["-", "--"]:
+			file = sys.stdout
+		elif os.path.exists(outfile):
+			die("File", outfile, "already exists")
+		else:
+			file = open(outfile, "wb")
+
 		def iter_dir_tree(root):
 			for dirname, directories, files in os.walk(root):
 				for file in files:
 					yield join(dirname, file)
 
-		file = open(outfile, "wb")
 		for fragment in compress(iter_dir_tree(path)):
 			file.write(fragment)
-		file.close()
+
+		if outfile not in ["-", "--"]:
+			file.close()
+
+
+	###
+	elif action == "compress-list":
+
+		infile_name  = get_option(2, "-")
+		outfile_name = get_option(3, "-")
+
+		if infile_name in ["-", "--"]:
+			infile = sys.stdin
+		else:
+			if not os.path.exists(infile_name):
+				die("File", infile_name, "doesn't exists")
+			infile = open(infile_name, "r")
+
+		if outfile_name in ["-", "--"]:
+			outfile = sys.stdout
+		else:
+			if os.path.exists(outfile_name):
+				die("File", outfile_name, "already exists")
+			outfile = open(outfile_name, "wb")
+
+		def iter_lines(file):
+			for line in file:
+				yield line[:-1]
+
+		for fragment in compress(iter_lines(infile)):
+			outfile.write(fragment)
+
+		if infile_name not in ["-", "--"]:
+			infile.close()
+		if outfile_name not in ["-", "--"]:
+			outfile.close()
 
 	###
 	elif action == "decompress":
 
-		infile = get_option(2)
-		
-		for path in decompress(open(infile, "rb")):
+		infile = get_option(2, "-")
+		if infile in ["-", "--"]:
+			file = sys.stdin
+		else:
+			if not os.path.exists(infile):
+				die("File", outfile, "doesn't exists")
+			file = open(infile)
+
+		for path in decompress(file):
 			print path
+
+		if infile not in ["-", "--"]:
+			file.close()
 	else:
 		usage()
 
