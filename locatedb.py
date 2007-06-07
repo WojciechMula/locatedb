@@ -137,11 +137,11 @@ if __name__ == "__main__":
 			die("File", path, "is not directory")
 
 		if outfile in ["-", "--"]:
-			file = sys.stdout
+			outfile = sys.stdout
 		elif os.path.exists(outfile):
 			die("File", outfile, "already exists")
 		else:
-			file = open(outfile, "wb")
+			outfile = open(outfile, "wb")
 
 		def iter_dir_tree(root):
 			for dirname, directories, files in os.walk(root):
@@ -149,9 +149,9 @@ if __name__ == "__main__":
 					yield join(dirname, file)
 
 		for fragment in compress(iter_dir_tree(path)):
-			file.write(fragment)
+			outfile.write(fragment)
 
-		if outfile not in ["-", "--"]:
+		if outfile is not sys.stdout:
 			file.close()
 
 
@@ -182,9 +182,9 @@ if __name__ == "__main__":
 		for fragment in compress(iter_lines(infile)):
 			outfile.write(fragment)
 
-		if infile_name not in ["-", "--"]:
+		if infile_name is not sys.stdin:
 			infile.close()
-		if outfile_name not in ["-", "--"]:
+		if outfile_name is not sys.stdout:
 			outfile.close()
 
 	###
@@ -192,17 +192,17 @@ if __name__ == "__main__":
 
 		infile = get_option(2, "-")
 		if infile in ["-", "--"]:
-			file = sys.stdin
+			infile = sys.stdin
 		else:
 			if not os.path.exists(infile):
 				die("File", outfile, "doesn't exists")
-			file = open(infile)
+			infile = open(infile, "rb")
 
-		for path in decompress(file):
+		for path in decompress(infile):
 			print path
 
-		if infile not in ["-", "--"]:
-			file.close()
+		if infile is not sys.stdin
+			infile.close()
 	else:
 		usage()
 
