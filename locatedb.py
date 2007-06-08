@@ -64,7 +64,8 @@ def decompress_aux(file):
 		diff = ord(getc())
 		if diff == 0x80:
 			diff = ord(getc()) * 256 + ord(getc())
-			diff = -((~diff + 1) & 0xffff)
+			if diff >= 0x8000:
+				diff = -((~diff + 1) & 0xffff)
 		elif diff > 0x80:
 			diff = -((~diff + 1) & 0xff)
 
