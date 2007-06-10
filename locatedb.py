@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: iso-8859-2 -*-
+# $Date: 2007-06-10 21:34:50 $, $Revision: 1.7 $
 #
 # Library/utility for reading and writing locatedb (v2.0) files.
 # Read man locate, man locatedb for details.
