@@ -6,7 +6,7 @@
 # 
 # Author: Wojciech Mu³a
 # e-mail: wojciech_mula@poczta.onet.pl
-# www:    http://mula.w.pl
+# www:    http://www.mula.w.pl
 #
 # License: BSD
 #
