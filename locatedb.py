@@ -1,3 +1,16 @@
+#!/usr/bin/env python
+# -*- coding: iso-8859-2 -*-
+#
+# Library/utility for reading and writing locatedb (v2.0) files.
+# Read man locate, man locatedb for details.
+# 
+# Author: Wojciech Mu³a
+# e-mail: wojciech_mula@poczta.onet.pl
+# www:    http://mula.w.pl
+#
+# License: BSD
+#
+
 __all__ = ["compress", "decompress"]
 
 from os.path   import join, commonprefix
@@ -5,6 +18,9 @@ from itertools import chain
 
 
 def compress(paths):
+	"""Create locatedb file.  Generator yields fragments of locatedb
+	file.  Paths is any iterable object of strings."""
+
 	prev_path = ""
 	prev_n    = 0
 	for path in chain(["LOCATE02"], paths):
@@ -22,7 +38,7 @@ def compress(paths):
 			# diff in [-127..127]
 			bytes += chr(diff & 0xff)
 		else:
-			# diff larget
+			# diff larger
 			bytes += chr(0x80)
 
 			hilo   = diff & 0xffff
@@ -39,6 +55,10 @@ def compress(paths):
 
 
 def decompress_aux(file):
+	"""Decompress locatedb file (doesn't check if file is valid!).
+	Generator yields all paths, including first dummy-path
+	"LOCATE02".  File have to be any file-like object that support
+	read."""
 	class Dummy: pass
 
 	curr = Dummy()
@@ -46,6 +66,7 @@ def decompress_aux(file):
 	curr.idx = 0
 
 	def getc():
+		# XXX any improvements?
 		try:
 			c = curr.buffer[curr.idx]
 			curr.idx += 1
@@ -62,6 +83,7 @@ def decompress_aux(file):
 	count = 0
 	while True:
 		diff = ord(getc())
+		# decoded diff
 		if diff == 0x80:
 			diff = ord(getc()) * 256 + ord(getc())
 			if diff >= 0x8000:
@@ -69,6 +91,7 @@ def decompress_aux(file):
 		elif diff > 0x80:
 			diff = -((~diff + 1) & 0xff)
 
+		# read path fragment
 		path = ""
 		while True:
 			c = getc()
@@ -77,12 +100,16 @@ def decompress_aux(file):
 			else:
 				path += c
 
+		# get length of path prefix from previous iteration
 		count += diff
+
+		# and create real path
 		current_path = current_path[:count] + path
 		yield current_path
 
 
 def decompress(file):
+	"""Decompress locatedb file."""
 	iter = decompress_aux(file)
 	try:
 		first_entry = iter.next()
@@ -96,22 +123,39 @@ def decompress(file):
 		yield item
 
 
+usage_text = """\
+Utility to read/write locatedb 2.0 files.
+
+usage:
+	%s decompress infile
+	%s compress path outfile
+	%s compress-list infile outfile
+
+decompres     - print on stdout decompressed contents of infile 
+compress      - create locatedb file for given path
+compress-list - create locatedb from arbitrary list of paths
+                that are readed from infile
+
+If infile/outfile is "-" or "--" then file is associated with stdin/stdout.
+"""
+
 if __name__ == "__main__":
 	import os, os.path, sys
 
-	def usage():
-		print "usage:"
-		print "%s decompress infile" % sys.argv[0]
-		print "%s compress path outfile" % sys.argv[0]
-		print "%s compress-list infile outfile" % sys.argv[0]
-		sys.exit(1)
+	def usage(onerror=False):
+		name = sys.argv[0]
+		sys.stdout.write(usage_text % (name, name, name))
+		if onerror:
+			sys.exit(1)
+		else:
+			sys.exit(0)
 
 	def get_option(index, default=None):
 		try:
 			return sys.argv[index]
 		except IndexError:
 			if type(default) is not str:
-				usage()
+				usage(True)
 			else:
 				return default
 
@@ -202,9 +246,9 @@ if __name__ == "__main__":
 		for path in decompress(infile):
 			print path
 
-		if infile is not sys.stdin
+		if infile is not sys.stdin:
 			infile.close()
 	else:
-		usage()
+		usage(True)
 
 # vim: ts=4 sw=4 nowrap noexpandtab
