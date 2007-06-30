@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: iso-8859-2 -*-
-# $Date: 2007-06-10 21:34:50 $, $Revision: 1.7 $
+# $Date: 2007-06-30 21:01:13 $, $Revision: 1.8 $
 #
 # Library/utility for reading and writing locatedb (v2.0) files.
 # Read man locate, man locatedb for details.
@@ -197,29 +197,26 @@ if __name__ == "__main__":
 		for fragment in compress(iter_dir_tree(path)):
 			outfile.write(fragment)
 
-		if outfile is not sys.stdout:
-			file.close()
-
 
 	###
 	elif action == "compress-list":
 
-		infile_name  = get_option(2, "-")
-		outfile_name = get_option(3, "-")
+		infile  = get_option(2, "-")
+		outfile = get_option(3, "-")
 
-		if infile_name in ["-", "--"]:
+		if infile in ["-", "--"]:
 			infile = sys.stdin
 		else:
-			if not os.path.exists(infile_name):
-				die("File", infile_name, "doesn't exists")
-			infile = open(infile_name, "r")
+			if not os.path.exists(infile):
+				die("File", infile, "doesn't exists")
+			infile = open(infile, "r")
 
-		if outfile_name in ["-", "--"]:
+		if outfile in ["-", "--"]:
 			outfile = sys.stdout
 		else:
-			if os.path.exists(outfile_name):
-				die("File", outfile_name, "already exists")
-			outfile = open(outfile_name, "wb")
+			if os.path.exists(outfile):
+				die("File", outfile, "already exists")
+			outfile = open(outfile, "wb")
 
 		def iter_lines(file):
 			for line in file:
@@ -228,10 +225,6 @@ if __name__ == "__main__":
 		for fragment in compress(iter_lines(infile)):
 			outfile.write(fragment)
 
-		if infile_name is not sys.stdin:
-			infile.close()
-		if outfile_name is not sys.stdout:
-			outfile.close()
 
 	###
 	elif action == "decompress":
@@ -241,14 +234,12 @@ if __name__ == "__main__":
 			infile = sys.stdin
 		else:
 			if not os.path.exists(infile):
-				die("File", outfile, "doesn't exists")
+				die("File", infile, "doesn't exists")
 			infile = open(infile, "rb")
 
 		for path in decompress(infile):
 			print path
 
-		if infile is not sys.stdin:
-			infile.close()
 	else:
 		usage(True)
 
