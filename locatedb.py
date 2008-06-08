@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: iso-8859-2 -*-
-# $Date: 2007-06-30 21:01:13 $, $Revision: 1.8 $
+# $Date: 2008-06-08 23:00:14 $, $Revision: 1.9 $
 #
 # Library/utility for reading and writing locatedb (v2.0) files.
 # Read man locate, man locatedb for details.
 # 
 # Author: Wojciech Mu³a
 # e-mail: wojciech_mula@poczta.onet.pl
-# www:    http://www.mula.w.pl
+# www:    http://www.republika.pl/wmula/
 #
 # License: BSD
 #
