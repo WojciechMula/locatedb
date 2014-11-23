@@ -2,7 +2,7 @@ locatedb
 ========
 
 Python lib/prog to manipulate locatedb files used by
-well known`locate` program.
+well known locate program.
 
 Following operations are supported:
 * create db file
